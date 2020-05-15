@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable, of } from "rxjs";
+import { Observable, throwError } from "rxjs";
 import { catchError } from "rxjs/operators";
 import { IMessage } from "../models/message";
 
@@ -25,9 +25,9 @@ export class MessageService {
     console.error('server error:', error);
 
     if (error.error instanceof Error) {
-      return Observable.throw(error.error.message);
+      return throwError(error.error.message);
     }
 
-    return Observable.throw(error || 'Server error');
+    return throwError(error || 'Server error');
   }
 }

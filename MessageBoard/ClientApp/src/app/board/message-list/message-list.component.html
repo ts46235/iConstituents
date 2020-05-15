@@ -19,17 +19,3 @@
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 </table>
-<table>
-  <thead>
-  <tr>
-    <th>Comment</th>
-    <th>User</th>
-    <th>Created</th>
-  </tr>
-  </thead>
-  <tr *ngFor="let vm of data">
-    <td>{{vm.comment}}</td>
-    <td>{{vm.user}}</td>
-    <td>{{vm.time}}</td>
-  </tr>
-</table>

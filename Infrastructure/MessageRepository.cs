@@ -1,29 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using Core.Entities;
 using Core.Interfaces;
 using System.Data.SQLite;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure
 {
     public class MessageRepository : IMessageRepository
     {
-        private DbConnection _connection;
+        private string _connectionString;
 
-        public MessageRepository()
+        public MessageRepository(IConfiguration config)
         {
-            _connection = new SQLiteConnection("Data Source=..\\Infrastructure\\message.db; Version=3;");
-            _connection.Open();
+            _connectionString = config["DBConnection"];
         }
 
         public async Task<IList<Message>> GetMessages()
         {
-            var cmd = _connection.CreateCommand();
+            var list = new List<Message>();
+            
+            await using var connection = new SQLiteConnection(_connectionString);
+            await connection.OpenAsync();
+
+            var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT * FROM Message ORDER BY ID DESC";
 
-            var list = new List<Message>();
             await using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
@@ -35,6 +38,8 @@ namespace Infrastructure
                     User = reader.GetString(reader.GetOrdinal("User")),
                 });
             }
+            
+            await connection.CloseAsync();
 
             return list;
         }
@@ -42,9 +47,15 @@ namespace Infrastructure
         public async Task Create(Message item)
         {
             item.Time = DateTimeOffset.Now.ToString("o");
-            var cmd = _connection.CreateCommand();
+            
+            await using var connection = new SQLiteConnection(_connectionString);
+            await connection.OpenAsync();
+            
+            var cmd = connection.CreateCommand();
             cmd.CommandText = $"insert into Message (Time, Comment, User) values ('{item.Time}','{item.Comment}','{item.User}')";
+            
             await cmd.ExecuteNonQueryAsync();
+            await connection.CloseAsync();
         }
     }
 }
